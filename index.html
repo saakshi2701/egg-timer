@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Egg Timer</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
@@ -11,12 +12,15 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
+    margin: 0;
+    padding: 10px;
     font-family: Inter, sans-serif;
   }
 
   .window {
-    width: 280px;
+    width: 90vw;
+    max-width: 400px;
     background: #F8D658;
     border: 4px solid #D29A25;
     border-radius: 8px;
@@ -25,33 +29,35 @@
 
   .titlebar {
     background: #F3A928;
-    padding: 6px 10px;
+    padding: 10px 15px;
     font-weight: bold;
+    font-size: 18px;
     color: #2E2E2E;
     border-bottom: 3px solid #D29A25;
   }
 
   .content {
     text-align: center;
-    padding: 15px 10px;
+    padding: 20px 15px;
   }
 
   #timer {
     font-family: "DS-Digital", monospace;
-    font-size: 46px;
-    margin-top: 8px;
+    font-size: 64px;
+    margin: 15px 0;
     color: #2E2E2E;
   }
 
   button {
-    margin: 5px 3px;
-    padding: 8px 16px;
+    margin: 5px 4px;
+    padding: 12px 18px;
     background: #F3A928;
     border: 3px solid #D29A25;
     border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 12px;
+    font-size: 14px;
+    line-height: 1.3;
   }
 
   button:active {
@@ -59,11 +65,16 @@
   }
 
   .preset-buttons {
-    margin: 10px 0;
+    margin: 12px 0;
   }
 
   .control-buttons {
-    margin-top: 10px;
+    margin-top: 15px;
+  }
+
+  img {
+    width: 120px;
+    height: auto;
   }
 </style>
 <link rel="manifest" href="manifest.json">
