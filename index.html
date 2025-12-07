@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Egg Timer</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
+<style>
+  body {
+    background: #c0c4ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: Inter, sans-serif;
+  }
+
+  .window {
+    width: 260px;
+    background: #F8D658;
+    border: 4px solid #D29A25;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  .titlebar {
+    background: #F3A928;
+    padding: 6px 10px;
+    font-weight: bold;
+    color: #2E2E2E;
+    border-bottom: 3px solid #D29A25;
+  }
+
+  .content {
+    text-align: center;
+    padding: 15px 10px;
+  }
+
+  #timer {
+    font-family: "DS-Digital", monospace;
+    font-size: 46px;
+    margin-top: 8px;
+    color: #2E2E2E;
+  }
+
+  button {
+    margin-top: 15px;
+    padding: 8px 20px;
+    background: #F3A928;
+    border: 3px solid #D29A25;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+</style>
+<link rel="manifest" href="manifest.json">
+</head>
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js")
+    .then(() => console.log("Service Worker registered"))
+    .catch(err => console.log("SW error:", err));
+}
+</script>
+
+<body>
+<audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+<div class="window">
+  <div class="titlebar">Egg Timer</div>
+  
+  <div class="content">
+    <img src="egg.svg" width="90">
+    <div id="timer">00:10</div>
+    <button onclick="startTimer()">Start</button>
+  </div>
+</div>
+
+<script>
+let seconds = 10;
+let interval;
+
+function startTimer() {
+  clearInterval(interval);
+  seconds = 10;
+
+  interval = setInterval(() => {
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+
+    document.getElementById("timer").textContent = `${m}:${s}`;
+    seconds--;
+
+    if (seconds < 0) {
+      clearInterval(interval);
+      document.getElementById("timer").textContent = "DONE!";
+
+    function playBeep() {
+        const beep = document.getElementById("beep");
+
+        beep.currentTime = 0;
+        beep.play();
+    }
+
+    playBeep();
+    setTimeout(playBeep, 500);
+    setTimeout(playBeep, 1000);
+    }
+  }, 1000);
+}
+</script>
+
+</body>
+</html>
