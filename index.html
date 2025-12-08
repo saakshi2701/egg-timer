@@ -115,7 +115,7 @@
     
     <!-- Preset buttons -->
     <div class="preset-buttons">
-      <button onclick="setPreset(20)">Soft<br>(3 min)</button>
+      <button onclick="setPreset(10)">Soft<br>(3 min)</button>
       <button onclick="setPreset(300)">Medium<br>(5 min)</button>
       <button onclick="setPreset(420)">Hard<br>(7 min)</button>
       <button onclick="setPreset(600)">Extra Hard<br>(10 min)</button>
@@ -135,7 +135,8 @@
 
 
 <script>
-let totalSeconds = 0;
+let presetSeconds = 0;  // Stores the original preset value
+let currentSeconds = 0; // Current countdown value
 let endTime = null;
 let interval;
 let beepInterval;
@@ -152,7 +153,8 @@ beepAudio.volume = 1.0;
 
 function setPreset(secs) {
   stopTimer();
-  totalSeconds = secs;
+  presetSeconds = secs;
+  currentSeconds = secs;
   updateDisplay(secs);
 }
 
@@ -168,10 +170,10 @@ function updateDisplay(secondsRemaining) {
 
 function startTimer() {
   if (isRunning) return;
-  if (totalSeconds === 0) return;
+  if (currentSeconds === 0) return;
   
   // Calculate end time based on current time + remaining seconds
-  endTime = Date.now() + (totalSeconds * 1000);
+  endTime = Date.now() + (currentSeconds * 1000);
   isRunning = true;
   
   // Update display every 100ms for smooth countdown
@@ -182,12 +184,13 @@ function startTimer() {
     if (remaining <= 0) {
       clearInterval(interval);
       isRunning = false;
+      currentSeconds = 0;
       document.getElementById("timer").textContent = "DONE!";
       startBeeping();
       startVibration();
     } else {
+      currentSeconds = remaining;
       updateDisplay(remaining);
-      totalSeconds = remaining; // Update for pause/resume
     }
   }, 100);
 }
@@ -209,7 +212,8 @@ function stopTimer() {
 
 function resetTimer() {
   stopTimer();
-  updateDisplay(totalSeconds);
+  currentSeconds = presetSeconds;
+  updateDisplay(presetSeconds);
 }
 
 
@@ -257,11 +261,12 @@ document.addEventListener('visibilitychange', () => {
     if (remaining <= 0) {
       clearInterval(interval);
       isRunning = false;
+      currentSeconds = 0;
       document.getElementById("timer").textContent = "DONE!";
       startBeeping();
       startVibration();
     } else {
-      totalSeconds = remaining;
+      currentSeconds = remaining;
       updateDisplay(remaining);
     }
   }
