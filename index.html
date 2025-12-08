@@ -115,7 +115,7 @@
     
     <!-- Preset buttons -->
     <div class="preset-buttons">
-      <button onclick="setPreset(10)">Soft<br>(3 min)</button>
+      <button onclick="setPreset(180)">Soft<br>(3 min)</button>
       <button onclick="setPreset(300)">Medium<br>(5 min)</button>
       <button onclick="setPreset(420)">Hard<br>(7 min)</button>
       <button onclick="setPreset(600)">Extra Hard<br>(10 min)</button>
@@ -135,19 +135,26 @@
 
 
 <script>
-let presetSeconds = 0;  // Stores the original preset value
-let currentSeconds = 0; // Current countdown value
+let presetSeconds = 0;
+let currentSeconds = 0;
 let endTime = null;
 let interval;
 let beepInterval;
 let vibrationInterval;
 let isRunning = false;
+let notificationTimeout = null;
 
 
 
-// Set volume to maximum on page load
 const beepAudio = document.getElementById("beep");
 beepAudio.volume = 1.0;
+
+
+
+// Request notification permission on load
+if ('Notification' in window && 'serviceWorker' in navigator) {
+  Notification.requestPermission();
+}
 
 
 
@@ -168,15 +175,38 @@ function updateDisplay(secondsRemaining) {
 
 
 
+function showNotification() {
+  if ('serviceWorker' in navigator && 'Notification' in window) {
+    if (Notification.permission === 'granted') {
+      navigator.serviceWorker.ready.then(registration => {
+        registration.showNotification('Egg Timer', {
+          body: 'Your eggs are ready! 🥚',
+          icon: 'egg.svg',
+          badge: 'egg.svg',
+          vibrate: [500, 250, 500, 250, 500, 250, 500],
+          tag: 'egg-timer',
+          requireInteraction: true
+        });
+      });
+    }
+  }
+}
+
+
+
 function startTimer() {
   if (isRunning) return;
   if (currentSeconds === 0) return;
   
-  // Calculate end time based on current time + remaining seconds
   endTime = Date.now() + (currentSeconds * 1000);
   isRunning = true;
   
-  // Update display every 100ms for smooth countdown
+  // Schedule notification for when timer completes
+  if (notificationTimeout) clearTimeout(notificationTimeout);
+  notificationTimeout = setTimeout(() => {
+    showNotification();
+  }, currentSeconds * 1000);
+  
   interval = setInterval(() => {
     const now = Date.now();
     const remaining = Math.ceil((endTime - now) / 1000);
@@ -201,6 +231,7 @@ function stopTimer() {
   clearInterval(interval);
   clearInterval(beepInterval);
   clearInterval(vibrationInterval);
+  if (notificationTimeout) clearTimeout(notificationTimeout);
   isRunning = false;
   endTime = null;
   beepAudio.pause();
@@ -251,10 +282,8 @@ function stopVibration() {
 
 
 
-// Handle page visibility changes (when app returns from background)
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden && isRunning && endTime) {
-    // Recalculate remaining time when page becomes visible again
     const now = Date.now();
     const remaining = Math.ceil((endTime - now) / 1000);
     
