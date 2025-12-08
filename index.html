@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Egg Timer</title>
 
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
 <style>
   body {
@@ -18,6 +19,7 @@
     font-family: Inter, sans-serif;
   }
 
+
   .window {
     width: 90vw;
     max-width: 400px;
@@ -26,6 +28,7 @@
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
+
 
   .titlebar {
     background: #F3A928;
@@ -36,10 +39,12 @@
     border-bottom: 3px solid #D29A25;
   }
 
+
   .content {
     text-align: center;
     padding: 20px 15px;
   }
+
 
   #timer {
     font-family: "DS-Digital", monospace;
@@ -47,6 +52,7 @@
     margin: 15px 0;
     color: #2E2E2E;
   }
+
 
   button {
     margin: 5px 4px;
@@ -60,17 +66,21 @@
     line-height: 1.3;
   }
 
+
   button:active {
     background: #D29A25;
   }
+
 
   .preset-buttons {
     margin: 12px 0;
   }
 
+
   .control-buttons {
     margin-top: 15px;
   }
+
 
   img {
     width: 120px;
@@ -80,8 +90,10 @@
 <link rel="manifest" href="manifest.json">
 </head>
 
+
 <body>
 <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
 
 <div class="window">
   <div class="titlebar">Egg Timer</div>
@@ -91,7 +103,7 @@
     
     <!-- Preset buttons -->
     <div class="preset-buttons">
-      <button onclick="setPreset(180)">Soft<br>(3 min)</button>
+      <button onclick="setPreset(10)">Soft<br>(3 min)</button>
       <button onclick="setPreset(300)">Medium<br>(5 min)</button>
       <button onclick="setPreset(420)">Hard<br>(7 min)</button>
       <button onclick="setPreset(600)">Extra Hard<br>(10 min)</button>
@@ -108,12 +120,20 @@
   </div>
 </div>
 
+
 <script>
 let seconds = 0;
 let totalSeconds = 0;
 let interval;
 let beepInterval;
+let vibrationInterval;
 let isRunning = false;
+
+
+// Set volume to maximum on page load
+const beepAudio = document.getElementById("beep");
+beepAudio.volume = 1.0; // Maximum volume (range: 0.0 to 1.0)
+
 
 function setPreset(secs) {
   stopTimer();
@@ -122,11 +142,13 @@ function setPreset(secs) {
   updateDisplay();
 }
 
+
 function updateDisplay() {
   const m = String(Math.floor(seconds / 60)).padStart(2, '0');
   const s = String(seconds % 60).padStart(2, '0');
   document.getElementById("timer").textContent = `${m}:${s}`;
 }
+
 
 function startTimer() {
   if (isRunning) return;
@@ -137,23 +159,28 @@ function startTimer() {
     seconds--;
     updateDisplay();
 
+
     if (seconds <= 0) {
       clearInterval(interval);
       isRunning = false;
       document.getElementById("timer").textContent = "DONE!";
       startBeeping();
+      startVibration();
     }
   }, 1000);
 }
 
+
 function stopTimer() {
   clearInterval(interval);
   clearInterval(beepInterval);
+  clearInterval(vibrationInterval);
   isRunning = false;
-  const beepAudio = document.getElementById("beep");
   beepAudio.pause();
   beepAudio.currentTime = 0;
+  stopVibration();
 }
+
 
 function resetTimer() {
   stopTimer();
@@ -161,9 +188,8 @@ function resetTimer() {
   updateDisplay();
 }
 
+
 function startBeeping() {
-  const beepAudio = document.getElementById("beep");
-  
   function playBeep() {
     beepAudio.currentTime = 0;
     beepAudio.play();
@@ -173,12 +199,37 @@ function startBeeping() {
   beepInterval = setInterval(playBeep, 700);
 }
 
+
+function startVibration() {
+  // Check if vibration is supported
+  if ("vibrate" in navigator) {
+    // Vibrate in a pattern: 500ms on, 250ms off, repeat
+    function vibratePattern() {
+      navigator.vibrate([500, 250, 500, 250, 500]);
+    }
+    
+    vibratePattern();
+    // Repeat the vibration pattern every 2 seconds
+    vibrationInterval = setInterval(vibratePattern, 2000);
+  }
+}
+
+
+function stopVibration() {
+  // Stop any ongoing vibration by passing 0
+  if ("vibrate" in navigator) {
+    navigator.vibrate(0);
+  }
+}
+
+
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js")
     .then(() => console.log("Service Worker registered"))
     .catch(err => console.log("SW error:", err));
 }
 </script>
+
 
 </body>
 </html>
