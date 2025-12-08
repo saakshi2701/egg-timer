@@ -6,6 +6,7 @@
 <title>Egg Timer</title>
 
 
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
 <style>
   body {
@@ -20,6 +21,7 @@
   }
 
 
+
   .window {
     width: 90vw;
     max-width: 400px;
@@ -28,6 +30,7 @@
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
+
 
 
   .titlebar {
@@ -40,10 +43,12 @@
   }
 
 
+
   .content {
     text-align: center;
     padding: 20px 15px;
   }
+
 
 
   #timer {
@@ -52,6 +57,7 @@
     margin: 15px 0;
     color: #2E2E2E;
   }
+
 
 
   button {
@@ -67,9 +73,11 @@
   }
 
 
+
   button:active {
     background: #D29A25;
   }
+
 
 
   .preset-buttons {
@@ -77,9 +85,11 @@
   }
 
 
+
   .control-buttons {
     margin-top: 15px;
   }
+
 
 
   img {
@@ -91,8 +101,10 @@
 </head>
 
 
+
 <body>
 <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
 
 
 <div class="window">
@@ -103,7 +115,7 @@
     
     <!-- Preset buttons -->
     <div class="preset-buttons">
-      <button onclick="setPreset(180)">Soft<br>(3 min)</button>
+      <button onclick="setPreset(20)">Soft<br>(3 min)</button>
       <button onclick="setPreset(300)">Medium<br>(5 min)</button>
       <button onclick="setPreset(420)">Hard<br>(7 min)</button>
       <button onclick="setPreset(600)">Extra Hard<br>(10 min)</button>
@@ -121,54 +133,65 @@
 </div>
 
 
+
 <script>
-let seconds = 0;
 let totalSeconds = 0;
+let endTime = null;
 let interval;
 let beepInterval;
 let vibrationInterval;
 let isRunning = false;
 
 
+
 // Set volume to maximum on page load
 const beepAudio = document.getElementById("beep");
-beepAudio.volume = 1.0; // Maximum volume (range: 0.0 to 1.0)
+beepAudio.volume = 1.0;
+
 
 
 function setPreset(secs) {
   stopTimer();
   totalSeconds = secs;
-  seconds = secs;
-  updateDisplay();
+  updateDisplay(secs);
 }
 
 
-function updateDisplay() {
-  const m = String(Math.floor(seconds / 60)).padStart(2, '0');
-  const s = String(seconds % 60).padStart(2, '0');
+
+function updateDisplay(secondsRemaining) {
+  const m = String(Math.floor(secondsRemaining / 60)).padStart(2, '0');
+  const s = String(secondsRemaining % 60).padStart(2, '0');
   document.getElementById("timer").textContent = `${m}:${s}`;
 }
 
 
+
 function startTimer() {
   if (isRunning) return;
-  if (seconds === 0) return;
+  if (totalSeconds === 0) return;
   
+  // Calculate end time based on current time + remaining seconds
+  endTime = Date.now() + (totalSeconds * 1000);
   isRunning = true;
+  
+  // Update display every 100ms for smooth countdown
   interval = setInterval(() => {
-    seconds--;
-    updateDisplay();
-
-
-    if (seconds <= 0) {
+    const now = Date.now();
+    const remaining = Math.ceil((endTime - now) / 1000);
+    
+    if (remaining <= 0) {
       clearInterval(interval);
       isRunning = false;
       document.getElementById("timer").textContent = "DONE!";
       startBeeping();
       startVibration();
+    } else {
+      updateDisplay(remaining);
+      totalSeconds = remaining; // Update for pause/resume
     }
-  }, 1000);
+  }, 100);
 }
+
 
 
 function stopTimer() {
@@ -176,17 +199,19 @@ function stopTimer() {
   clearInterval(beepInterval);
   clearInterval(vibrationInterval);
   isRunning = false;
+  endTime = null;
   beepAudio.pause();
   beepAudio.currentTime = 0;
   stopVibration();
 }
 
 
+
 function resetTimer() {
   stopTimer();
-  seconds = totalSeconds;
-  updateDisplay();
+  updateDisplay(totalSeconds);
 }
+
 
 
 function startBeeping() {
@@ -200,27 +225,48 @@ function startBeeping() {
 }
 
 
+
 function startVibration() {
-  // Check if vibration is supported
   if ("vibrate" in navigator) {
-    // Vibrate in a pattern: 500ms on, 250ms off, repeat
     function vibratePattern() {
       navigator.vibrate([500, 250, 500, 250, 500]);
     }
     
     vibratePattern();
-    // Repeat the vibration pattern every 2 seconds
     vibrationInterval = setInterval(vibratePattern, 2000);
   }
 }
 
 
+
 function stopVibration() {
-  // Stop any ongoing vibration by passing 0
   if ("vibrate" in navigator) {
     navigator.vibrate(0);
   }
 }
+
+
+
+// Handle page visibility changes (when app returns from background)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && isRunning && endTime) {
+    // Recalculate remaining time when page becomes visible again
+    const now = Date.now();
+    const remaining = Math.ceil((endTime - now) / 1000);
+    
+    if (remaining <= 0) {
+      clearInterval(interval);
+      isRunning = false;
+      document.getElementById("timer").textContent = "DONE!";
+      startBeeping();
+      startVibration();
+    } else {
+      totalSeconds = remaining;
+      updateDisplay(remaining);
+    }
+  }
+});
+
 
 
 if ("serviceWorker" in navigator) {
@@ -229,6 +275,7 @@ if ("serviceWorker" in navigator) {
     .catch(err => console.log("SW error:", err));
 }
 </script>
+
 
 
 </body>
